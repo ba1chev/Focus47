@@ -106,9 +106,9 @@ body {
     height: var(--slot-height);
     text-align: right;
     padding-right: 8px;
+    padding-top: 4px;
     font-size: 12px;
     color: var(--text-dim);
-    transform: translateY(-7px);
 }
 .days-container {
     flex: 1;
