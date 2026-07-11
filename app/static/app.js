@@ -1,6 +1,6 @@
 // ---- Config ----
-const DAY_START_HOUR = 7;   // 7 AM
-const DAY_END_HOUR = 20;    // 8 PM (exclusive last slot label)
+const DAY_START_HOUR = 0;   // 12 AM
+const DAY_END_HOUR = 23;    // 11 PM (last hour row)
 const SLOT_HEIGHT = 56;     // must match --slot-height in CSS
 const HOURS = [];
 for (let h = DAY_START_HOUR; h <= DAY_END_HOUR; h++) HOURS.push(h);
@@ -19,6 +19,7 @@ let editingId = null;
 const headerEl = document.getElementById("calendar-header");
 const gutterEl = document.getElementById("time-gutter");
 const daysEl = document.getElementById("days-container");
+const bodyEl = document.getElementById("calendar-body");
 const rangeEl = document.getElementById("week-range");
 const dialog = document.getElementById("task-dialog");
 const form = document.getElementById("task-form");
@@ -272,3 +273,6 @@ document.getElementById("view-toggle").addEventListener("click", (e) => {
 });
 
 render();
+
+// Start scrolled to the morning (7 AM), like Teams.
+bodyEl.scrollTop = (7 - DAY_START_HOUR) * SLOT_HEIGHT;
