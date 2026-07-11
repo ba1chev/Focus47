@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 
+from app.config import DEFAULT_COLOR
+
 
 class UserCreate(BaseModel):
     name: str
-    color: str = "#6264a7"
+    color: str = DEFAULT_COLOR
