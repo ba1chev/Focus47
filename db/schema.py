@@ -1,8 +1,5 @@
-from pathlib import Path
-
+from db.config import SCHEMA_PATH
 from db.connection import Database
-
-SCHEMA_PATH = Path(__file__).resolve().parent / "schemas" / "schema.sql"
 
 
 class SchemaInitializer:

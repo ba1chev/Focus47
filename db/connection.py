@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 from typing import Iterator
 
-DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "focus47.db"
+from db.config import DEFAULT_DB_PATH
 
 
 class Database:
