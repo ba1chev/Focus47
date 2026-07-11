@@ -134,8 +134,7 @@ function placeTask(col, task, start, end) {
     const height = (durMin / 60) * SLOT_HEIGHT;
 
     const block = document.createElement("div");
-    block.className = `task-block prio-${task.priority}` +
-        (task.status === "done" ? " done" : "");
+    block.className = `task-block prio-${task.priority} status-${task.status}`;
     block.style.top = `${Math.max(top, 0)}px`;
     block.style.height = `${height - 2}px`;
 
