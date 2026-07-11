@@ -22,11 +22,28 @@
         </div>
     </header>
 
-    <div class="calendar">
-        <div class="calendar-header" id="calendar-header"></div>
-        <div class="calendar-body" id="calendar-body">
-            <div class="time-gutter" id="time-gutter"></div>
-            <div class="days-container" id="days-container"></div>
+    <div class="app-body">
+        <aside class="sidebar">
+            <h1 class="sidebar-title">Calendar</h1>
+            <div class="mini-cal">
+                <div class="mini-cal-head">
+                    <span id="mini-month-label"></span>
+                    <div class="mini-nav">
+                        <button id="mini-prev" class="btn icon" aria-label="Предишен месец">&#8593;</button>
+                        <button id="mini-next" class="btn icon" aria-label="Следващ месец">&#8595;</button>
+                    </div>
+                </div>
+                <div class="mini-weekdays" id="mini-weekdays"></div>
+                <div class="mini-grid" id="mini-grid"></div>
+            </div>
+        </aside>
+
+        <div class="calendar">
+            <div class="calendar-header" id="calendar-header"></div>
+            <div class="calendar-body" id="calendar-body">
+                <div class="time-gutter" id="time-gutter"></div>
+                <div class="days-container" id="days-container"></div>
+            </div>
         </div>
     </div>
 

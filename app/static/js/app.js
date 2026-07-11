@@ -6,11 +6,13 @@ const HOURS = [];
 for (let h = DAY_START_HOUR; h <= DAY_END_HOUR; h++) HOURS.push(h);
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MINI_WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
     "August", "September", "October", "November", "December"];
 
 // ---- State ----
 let currentWeekStart = mondayOf(new Date());
+let miniMonth = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), 1);
 let workWeek = true;         // Mon–Fri vs full week
 let tasks = [];
 let editingId = null;
@@ -23,6 +25,9 @@ const bodyEl = document.getElementById("calendar-body");
 const rangeEl = document.getElementById("week-range");
 const dialog = document.getElementById("task-dialog");
 const form = document.getElementById("task-form");
+const miniLabelEl = document.getElementById("mini-month-label");
+const miniWeekdaysEl = document.getElementById("mini-weekdays");
+const miniGridEl = document.getElementById("mini-grid");
 
 // ---- Date helpers ----
 function mondayOf(date) {
@@ -92,6 +97,39 @@ function renderGutter() {
         label.className = "time-label";
         label.textContent = fmtHour(h);
         gutterEl.appendChild(label);
+    }
+}
+
+function renderMiniWeekdays() {
+    miniWeekdaysEl.innerHTML = "";
+    for (const w of MINI_WEEKDAYS) {
+        const cell = document.createElement("div");
+        cell.className = "mini-weekday";
+        cell.textContent = w;
+        miniWeekdaysEl.appendChild(cell);
+    }
+}
+
+function renderMiniCal() {
+    miniLabelEl.textContent = `${MONTHS[miniMonth.getMonth()]} ${miniMonth.getFullYear()}`;
+    miniGridEl.innerHTML = "";
+    const today = new Date();
+    const weekEnd = addDays(currentWeekStart, 6);
+    // first cell = Sunday on/before the 1st
+    const gridStart = addDays(miniMonth, -miniMonth.getDay());
+    for (let i = 0; i < 42; i++) {
+        const d = addDays(gridStart, i);
+        const cell = document.createElement("div");
+        cell.className = "mini-day";
+        if (d.getMonth() !== miniMonth.getMonth()) cell.classList.add("other-month");
+        if (sameDay(d, today)) cell.classList.add("today");
+        if (d >= currentWeekStart && d <= weekEnd) cell.classList.add("in-week");
+        cell.textContent = d.getDate();
+        cell.addEventListener("click", () => {
+            currentWeekStart = mondayOf(d);
+            render();
+        });
+        miniGridEl.appendChild(cell);
     }
 }
 
@@ -165,6 +203,8 @@ async function loadTasks() {
 }
 
 async function render() {
+    miniMonth = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), 1);
+    renderMiniCal();
     renderGutter();
     renderHeader(currentWeekStart);
     await loadTasks();
@@ -268,6 +308,16 @@ document.getElementById("view-toggle").addEventListener("click", (e) => {
     render();
 });
 
+document.getElementById("mini-prev").addEventListener("click", () => {
+    miniMonth.setMonth(miniMonth.getMonth() - 1);
+    renderMiniCal();
+});
+document.getElementById("mini-next").addEventListener("click", () => {
+    miniMonth.setMonth(miniMonth.getMonth() + 1);
+    renderMiniCal();
+});
+
+renderMiniWeekdays();
 render();
 
 // Start scrolled to the morning (7 AM), like Teams.

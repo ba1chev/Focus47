@@ -66,6 +66,72 @@ body {
 .btn.danger:hover { background: #9a3a4e; }
 .hidden { display: none !important; }
 
+/* ---- Layout body ---- */
+.app-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 16px;
+    overflow-y: auto;
+}
+.sidebar-title {
+    margin: 0 0 16px;
+    font-size: 22px;
+    font-weight: 700;
+}
+.mini-cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.mini-cal-head #mini-month-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+.mini-nav { display: flex; gap: 2px; }
+.mini-nav .btn.icon {
+    padding: 2px 8px;
+    font-size: 14px;
+}
+.mini-weekdays, .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+.mini-weekdays {
+    margin-bottom: 4px;
+}
+.mini-weekday {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 2px 0;
+}
+.mini-day {
+    text-align: center;
+    font-size: 12px;
+    padding: 5px 0;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.mini-day:hover { background: var(--border); }
+.mini-day.other-month { color: var(--text-dim); opacity: 0.5; }
+.mini-day.today { color: var(--accent-hover); font-weight: 600; }
+.mini-day.in-week { background: var(--surface-2); border-radius: 0; }
+.mini-day.today.in-week {
+    background: var(--accent);
+    color: var(--text);
+    border-radius: 4px;
+}
+
 /* ---- Calendar ---- */
 .calendar {
     flex: 1;
