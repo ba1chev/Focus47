@@ -2,7 +2,7 @@ from pathlib import Path
 
 from db.connection import Database
 
-SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
+SCHEMA_PATH = Path(__file__).resolve().parent / "schemas" / "schema.sql"
 
 
 class SchemaInitializer:
