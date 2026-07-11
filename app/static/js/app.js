@@ -138,7 +138,6 @@ function placeTask(col, task, start, end) {
         (task.status === "done" ? " done" : "");
     block.style.top = `${Math.max(top, 0)}px`;
     block.style.height = `${height - 2}px`;
-    block.style.background = task.color || "#6264a7";
 
     const timeStr = `${fmtHour(start.getHours()).replace(" ", "")}`;
     block.innerHTML =
@@ -181,7 +180,6 @@ function setFormValues(v) {
     document.getElementById("f-status").value = v.status || "todo";
     document.getElementById("f-priority").value = v.priority || "medium";
     document.getElementById("f-category").value = v.category || "";
-    document.getElementById("f-color").value = v.color || "#6264a7";
 }
 
 function openCreate(dayDate, hour) {
@@ -213,7 +211,6 @@ function collectForm() {
         status: document.getElementById("f-status").value,
         priority: document.getElementById("f-priority").value,
         category: document.getElementById("f-category").value,
-        color: document.getElementById("f-color").value,
     };
 }
 

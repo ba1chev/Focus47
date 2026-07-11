@@ -8,6 +8,7 @@
     --accent: #6264a7;
     --accent-hover: #7476bd;
     --grid-line: #2a2946;
+    --task-bg: #12111f;
     --slot-height: 56px;
     --gutter-width: 64px;
 }
@@ -134,20 +135,21 @@ body {
     border-radius: 5px;
     padding: 4px 6px;
     font-size: 12px;
-    color: #fff;
+    color: var(--text);
+    background: var(--task-bg);
     overflow: hidden;
     cursor: pointer;
-    border-left: 3px solid rgba(255,255,255,0.5);
+    border-left: 3px solid var(--accent);
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     transition: filter 0.12s;
 }
-.task-block:hover { filter: brightness(1.15); }
+.task-block:hover { filter: brightness(1.4); }
 .task-block .task-title { font-weight: 600; line-height: 1.2; }
-.task-block .task-meta { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+.task-block .task-meta { font-size: 11px; opacity: 0.7; margin-top: 2px; }
 .task-block.done { opacity: 0.55; }
 .task-block.done .task-title { text-decoration: line-through; }
 .task-block.prio-high { border-left-color: #ff5c6c; border-left-width: 4px; }
-.task-block.prio-low { border-left-color: rgba(255,255,255,0.25); }
+.task-block.prio-low { border-left-color: var(--border); }
 
 /* ---- Dialog ---- */
 dialog {

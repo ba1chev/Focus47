@@ -13,6 +13,5 @@ CREATE TABLE IF NOT EXISTS tasks (
     status      TEXT NOT NULL DEFAULT 'todo',
     priority    TEXT NOT NULL DEFAULT 'medium',
     category    TEXT NOT NULL DEFAULT '',
-    color       TEXT NOT NULL DEFAULT '#6264a7',
     user_id     INTEGER REFERENCES users(id) ON DELETE SET NULL
 );

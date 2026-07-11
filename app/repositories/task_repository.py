@@ -1,9 +1,9 @@
 import sqlite3
 from typing import Optional
 
+from app.constants import COLUMNS
 from app.models.tasks.task_create import TaskCreate
 from app.models.tasks.task_update import TaskUpdate
-from app.constants import COLUMNS
 
 
 class TaskRepository:
@@ -40,8 +40,8 @@ class TaskRepository:
         cursor = self._conn.execute(
             """
             INSERT INTO tasks
-                (title, description, start, end, status, priority, category, color, user_id)
-            VALUES (:title, :description, :start, :end, :status, :priority, :category, :color, :user_id)
+                (title, description, start, end, status, priority, category, user_id)
+            VALUES (:title, :description, :start, :end, :status, :priority, :category, :user_id)
             """,
             data
         )

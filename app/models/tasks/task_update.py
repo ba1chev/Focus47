@@ -13,5 +13,4 @@ class TaskUpdate(BaseModel):
     status: Optional[Status] = None
     priority: Optional[Priority] = None
     category: Optional[str] = None
-    color: Optional[str] = None
     user_id: Optional[int] = None
