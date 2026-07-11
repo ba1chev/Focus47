@@ -10,6 +10,7 @@ from app.routers.task_router import TaskRouter
 from app.routers.user_router import UserRouter
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
 
 class Application:
@@ -32,7 +33,7 @@ class Application:
 
         @app.get("/")
         def index():
-            return FileResponse(STATIC_DIR / "index.html")
+            return FileResponse(TEMPLATES_DIR / "index.html")
 
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
         return app
