@@ -182,6 +182,13 @@ dialog input, dialog textarea, dialog select {
     padding: 8px 10px;
     font-size: 14px;
     font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+dialog textarea {
+    resize: vertical;
+    min-height: 60px;
+    max-height: 200px;
 }
 dialog input[type="color"] { padding: 3px; height: 38px; }
 dialog input:focus, dialog textarea:focus, dialog select:focus {
