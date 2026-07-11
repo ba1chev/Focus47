@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus47</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="toolbar">
+        <div class="toolbar-left">
+            <button id="today-btn" class="btn">Today</button>
+            <div class="nav-arrows">
+                <button id="prev-btn" class="btn icon" aria-label="Предишна седмица">&#8249;</button>
+                <button id="next-btn" class="btn icon" aria-label="Следваща седмица">&#8250;</button>
+            </div>
+            <span id="week-range" class="week-range"></span>
+        </div>
+        <div class="toolbar-right">
+            <button id="view-toggle" class="btn">Work week</button>
+            <button id="new-btn" class="btn primary">+ New</button>
+        </div>
+    </header>
+
+    <div class="calendar">
+        <div class="calendar-header" id="calendar-header"></div>
+        <div class="calendar-body" id="calendar-body">
+            <div class="time-gutter" id="time-gutter"></div>
+            <div class="days-container" id="days-container"></div>
+        </div>
+    </div>
+
+    <dialog id="task-dialog">
+        <form id="task-form" method="dialog">
+            <h2 id="dialog-title">New task</h2>
+
+            <label>Title
+                <input type="text" name="title" id="f-title" required>
+            </label>
+
+            <label>Description
+                <textarea name="description" id="f-description" rows="2"></textarea>
+            </label>
+
+            <div class="row">
+                <label>Start
+                    <input type="datetime-local" name="start" id="f-start" required>
+                </label>
+                <label>End
+                    <input type="datetime-local" name="end" id="f-end" required>
+                </label>
+            </div>
+
+            <div class="row">
+                <label>Status
+                    <select name="status" id="f-status">
+                        <option value="todo">To do</option>
+                        <option value="in_progress">In progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </label>
+                <label>Priority
+                    <select name="priority" id="f-priority">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="row">
+                <label>Category
+                    <input type="text" name="category" id="f-category" placeholder="e.g. Meeting">
+                </label>
+                <label>Color
+                    <input type="color" name="color" id="f-color" value="#6264a7">
+                </label>
+            </div>
+
+            <div class="dialog-actions">
+                <button type="button" id="delete-btn" class="btn danger hidden">Delete</button>
+                <span class="spacer"></span>
+                <button type="button" id="cancel-btn" class="btn">Cancel</button>
+                <button type="submit" id="save-btn" class="btn primary">Save</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
