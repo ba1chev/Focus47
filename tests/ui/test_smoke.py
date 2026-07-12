@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from playwright.sync_api import expect
 
@@ -127,3 +129,13 @@ def test_admin_sees_user_switch_dropdown(page, live_server):
     _login(page, live_server)
     page.wait_for_selector("#user-switch:not(.hidden)")
     assert page.locator("#user-switch").is_visible()
+
+
+def test_sidebar_toggles(page, live_server):
+    _login(page, live_server)
+    body = page.locator("#app-body")
+    assert "sidebar-collapsed" not in (body.get_attribute("class") or "")
+    page.click("#sidebar-toggle")
+    expect(body).to_have_class(re.compile(r"sidebar-collapsed"))
+    page.click("#sidebar-toggle")
+    assert "sidebar-collapsed" not in (body.get_attribute("class") or "")
