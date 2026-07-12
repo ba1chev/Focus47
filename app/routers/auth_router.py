@@ -2,8 +2,8 @@ import sqlite3
 from fastapi import APIRouter, Depends, HTTPException, Response
 
 from db.connection import Database
+from app.constants import COOKIE_NAME
 from app.models.users.user_out import UserOut
-from app.security.current_user import COOKIE_NAME
 from app.security.token_service import TokenService
 from app.models.auth.login_request import LoginRequest
 from app.security.password_hasher import PasswordHasher

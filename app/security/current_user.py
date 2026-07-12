@@ -1,12 +1,10 @@
-import sqlite3
 from typing import Optional
 from fastapi import Request, HTTPException
 
 from db.connection import Database
+from app.constants import COOKIE_NAME
 from app.security.token_service import TokenService
 from app.repositories.user_repository import UserRepository
-
-COOKIE_NAME = "access_token"
 
 
 class CurrentUser:
