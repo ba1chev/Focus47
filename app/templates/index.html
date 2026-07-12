@@ -9,6 +9,7 @@
 <body>
     <header class="toolbar">
         <div class="toolbar-left">
+            <button id="sidebar-toggle" class="btn icon" aria-label="Сгъни/разгъни календара">&#9776;</button>
             <select id="user-switch" class="btn hidden" aria-label="Смени потребител"></select>
             <button id="today-btn" class="btn">Today</button>
             <div class="nav-arrows">
@@ -23,7 +24,7 @@
         </div>
     </header>
 
-    <div class="app-body">
+    <div class="app-body" id="app-body">
         <aside class="sidebar">
             <h1 class="sidebar-title">Calendar</h1>
             <div class="mini-cal">
