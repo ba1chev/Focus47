@@ -11,6 +11,8 @@ from app.routers.auth_router import AuthRouter
 from app.security.current_user import CurrentUser
 from app.security.token_service import TokenService
 from app.security.password_hasher import PasswordHasher
+from app.middleware.csrf_middleware import CSRFMiddleware
+from app.middleware.security_headers_middleware import SecurityHeadersMiddleware
 from app.config import (
     APP_TITLE, DEFAULT_COLOR,
     ADMIN_ACCOUNT, ADMIN_PASSWORD, JWT_SECRET, JWT_TTL_HOURS,
@@ -41,6 +43,8 @@ class Application:
             yield
 
         app = FastAPI(title=APP_TITLE, lifespan=lifespan)
+        app.add_middleware(CSRFMiddleware)
+        app.add_middleware(SecurityHeadersMiddleware)
         app.include_router(
             AuthRouter(
                 self._database, self._hasher, self._tokens, self._current_user
