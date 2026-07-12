@@ -1,4 +1,5 @@
 import pytest
+from playwright.sync_api import expect
 
 from tests.ui.conftest import ADMIN_ACCOUNT, ADMIN_PASSWORD
 
@@ -50,6 +51,43 @@ def test_create_task_appears_in_calendar(page, live_server):
     page.click("#save-btn")
     page.wait_for_selector(".task-block:has-text('UI Test Task')")
     assert page.locator(".task-block:has-text('UI Test Task')").count() >= 1
+
+
+def _create_task(page, title):
+    page.click("#new-btn")
+    page.locator("#task-dialog").wait_for(state="visible")
+    page.fill("#f-title", title)
+    page.click("#save-btn")
+    page.wait_for_selector(f".task-block:has-text('{title}')")
+
+
+def test_left_click_opens_read_only_view(page, live_server):
+    _login(page, live_server)
+    _create_task(page, "View Me")
+    page.click(".task-block:has-text('View Me')")
+    page.locator("#view-dialog").wait_for(state="visible")
+    assert page.locator("#v-title").inner_text() == "View Me"
+    assert not page.locator("#task-dialog").is_visible()
+
+
+def test_right_click_shows_context_menu(page, live_server):
+    _login(page, live_server)
+    _create_task(page, "Menu Me")
+    page.click(".task-block:has-text('Menu Me')", button="right")
+    menu = page.locator("#ctx-menu")
+    menu.wait_for(state="visible")
+    assert menu.locator("button[data-act=edit]").is_visible()
+    assert menu.locator("button[data-act=copy]").is_visible()
+
+
+def test_copy_creates_a_second_task(page, live_server):
+    _login(page, live_server)
+    _create_task(page, "Clone Me")
+    assert page.locator(".task-block:has-text('Clone Me')").count() == 1
+    page.click(".task-block:has-text('Clone Me')", button="right")
+    page.locator("#ctx-menu").wait_for(state="visible")
+    page.click("#ctx-menu button[data-act=copy]")
+    expect(page.locator(".task-block:has-text('Clone Me')")).to_have_count(2)
 
 
 def test_logout_returns_to_login(page, live_server):
