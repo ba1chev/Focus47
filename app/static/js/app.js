@@ -17,6 +17,7 @@ let tasks = [];
 let editingId = null;
 let me = null;               // current authenticated user
 let viewUserId = null;       // dashboard being viewed (admin can switch)
+let dayColumns = [];         // [{ el, date }] for the rendered week (used by drag)
 
 // ---- DOM ----
 const headerEl = document.getElementById("calendar-header");
@@ -31,6 +32,8 @@ const miniWeekdaysEl = document.getElementById("mini-weekdays");
 const miniGridEl = document.getElementById("mini-grid");
 const userSwitchEl = document.getElementById("user-switch");
 const newBtn = document.getElementById("new-btn");
+const viewDialog = document.getElementById("view-dialog");
+const ctxMenu = document.getElementById("ctx-menu");
 
 // True when viewing your own dashboard (editing allowed).
 function isOwnBoard() {
@@ -160,7 +163,7 @@ function renderDays(weekStart) {
     const n = dayCount();
     const editable = isOwnBoard();
     daysEl.innerHTML = "";
-    const columns = [];
+    dayColumns = [];
     for (let i = 0; i < n; i++) {
         const col = document.createElement("div");
         col.className = "day-column";
@@ -173,15 +176,15 @@ function renderDays(weekStart) {
             col.appendChild(cell);
         }
         daysEl.appendChild(col);
-        columns.push({ col, dayDate });
+        dayColumns.push({ col, dayDate });
     }
     // place task blocks, grouped per day so overlaps sit side by side
     for (let i = 0; i < n; i++) {
         const dayTasks = tasks
-            .filter((t) => sameDay(parseISO(t.start), columns[i].dayDate))
+            .filter((t) => sameDay(parseISO(t.start), dayColumns[i].dayDate))
             .sort((a, b) => parseISO(a.start) - parseISO(b.start));
         for (const layout of layoutDay(dayTasks)) {
-            placeTask(columns[i].col, layout.task, layout.start, layout.end,
+            placeTask(dayColumns[i].col, layout.task, layout.start, layout.end,
                 editable, layout.left, layout.width);
         }
     }
@@ -246,11 +249,22 @@ function placeTask(col, task, start, end, editable, left, width) {
     block.innerHTML =
         `<div class="task-title">${escapeHtml(task.title)}</div>` +
         `<div class="task-meta">${timeStr}${task.category ? " · " + escapeHtml(task.category) : ""}</div>`;
+    // left click always previews (read-only), even on your own board
     block.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (editable) openEdit(task);
+        if (block._suppressClick) { block._suppressClick = false; return; }
+        openView(task);
     });
-    if (!editable) block.style.cursor = "default";
+    if (editable) {
+        block.classList.add("draggable");
+        block.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            showContextMenu(e.clientX, e.clientY, task);
+        });
+        attachDrag(block, task, start, end);
+    } else {
+        block.style.cursor = "default";
+    }
     col.appendChild(block);
 }
 
@@ -258,6 +272,131 @@ function escapeHtml(s) {
     const div = document.createElement("div");
     div.textContent = s ?? "";
     return div.innerHTML;
+}
+
+// ---- Read-only preview ----
+const STATUS_LABELS = { todo: "To do", in_progress: "In progress", done: "Done" };
+
+function fmtTimeRange(start, end) {
+    const t = (d) => {
+        const h = fmtHour(d.getHours()).replace(" ", "");
+        const m = d.getMinutes();
+        return m ? h.replace(/(AM|PM)/, `:${String(m).padStart(2, "0")} $1`) : h;
+    };
+    return `${t(start)} – ${t(end)}`;
+}
+
+function openView(task) {
+    const start = parseISO(task.start);
+    const end = parseISO(task.end);
+    document.getElementById("v-title").textContent = task.title;
+    document.getElementById("v-time").textContent = fmtTimeRange(start, end);
+    const bits = [STATUS_LABELS[task.status] || task.status,
+        `${task.priority} priority`];
+    if (task.category) bits.push(task.category);
+    document.getElementById("v-meta").textContent = bits.join(" · ");
+    const desc = document.getElementById("v-description");
+    desc.textContent = task.description || "";
+    desc.classList.toggle("hidden", !task.description);
+    const editBtn = document.getElementById("v-edit-btn");
+    editBtn.classList.toggle("hidden", !isOwnBoard());
+    editBtn.onclick = () => { viewDialog.close(); openEdit(task); };
+    viewDialog.showModal();
+}
+
+// ---- Context menu ----
+let ctxTask = null;
+
+function showContextMenu(x, y, task) {
+    ctxTask = task;
+    ctxMenu.style.left = `${x}px`;
+    ctxMenu.style.top = `${y}px`;
+    ctxMenu.classList.remove("hidden");
+}
+
+function hideContextMenu() {
+    ctxMenu.classList.add("hidden");
+    ctxTask = null;
+}
+
+async function copyTask(task) {
+    const payload = {
+        title: task.title, description: task.description,
+        start: task.start, end: task.end,
+        status: task.status, priority: task.priority,
+        category: task.category, repeat_weeks: 0,
+    };
+    await apiFetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+    await loadTasks();
+}
+
+// ---- Drag & drop (move) ----
+function snapMinutes(min) { return Math.round(min / 30) * 30; }
+
+function attachDrag(block, task, start, end) {
+    const durationMs = end - start;
+    block.addEventListener("mousedown", (e) => {
+        if (e.button !== 0) return; // left button only
+        const startX = e.clientX;
+        const startY = e.clientY;
+        let dragging = false;
+
+        const onMove = (ev) => {
+            if (!dragging &&
+                Math.abs(ev.clientX - startX) + Math.abs(ev.clientY - startY) < 4) {
+                return;
+            }
+            dragging = true;
+            block.classList.add("dragging");
+        };
+
+        const onUp = async (ev) => {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+            if (!dragging) return;
+            block.classList.remove("dragging");
+            block._suppressClick = true; // swallow the click that follows a drag
+            const dropped = dropTarget(ev.clientX, ev.clientY);
+            if (dropped) {
+                const newStart = dropped;
+                const newEnd = new Date(newStart.getTime() + durationMs);
+                await apiFetch(`/api/tasks/${task.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        start: toLocalISO(newStart), end: toLocalISO(newEnd),
+                    }),
+                });
+                await loadTasks();
+            }
+        };
+
+        document.addEventListener("mousemove", onMove);
+        document.addEventListener("mouseup", onUp);
+    });
+}
+
+// Resolve a drop point to a snapped start Date, or null if outside the grid.
+function dropTarget(clientX, clientY) {
+    let hit = null;
+    for (const { col, dayDate } of dayColumns) {
+        const r = col.getBoundingClientRect();
+        if (clientX >= r.left && clientX < r.right) {
+            const offsetY = clientY - r.top;
+            const rawMin = (offsetY / SLOT_HEIGHT) * 60 + DAY_START_HOUR * 60;
+            const min = Math.max(0, Math.min(snapMinutes(rawMin), 23 * 60 + 30));
+            const d = new Date(dayDate);
+            d.setHours(0, 0, 0, 0);
+            d.setMinutes(min);
+            hit = d;
+            break;
+        }
+    }
+    return hit;
 }
 
 // ---- Data ----
@@ -350,6 +489,26 @@ form.addEventListener("submit", async (e) => {
 });
 
 document.getElementById("cancel-btn").addEventListener("click", () => dialog.close());
+
+document.getElementById("v-close-btn").addEventListener("click", () => viewDialog.close());
+
+ctxMenu.addEventListener("click", (e) => {
+    const act = e.target.dataset.act;
+    if (!act || !ctxTask) return;
+    const task = ctxTask;
+    hideContextMenu();
+    if (act === "edit") openEdit(task);
+    else if (act === "copy") copyTask(task);
+});
+document.addEventListener("click", (e) => {
+    if (!ctxMenu.classList.contains("hidden") && !ctxMenu.contains(e.target)) {
+        hideContextMenu();
+    }
+});
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hideContextMenu();
+});
+window.addEventListener("scroll", hideContextMenu, true);
 
 document.getElementById("delete-btn").addEventListener("click", async () => {
     if (editingId === null) return;
