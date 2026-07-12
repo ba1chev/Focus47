@@ -286,6 +286,13 @@ function fmtTimeRange(start, end) {
     return `${t(start)} – ${t(end)}`;
 }
 
+// Escape text, then turn bare http(s) URLs into clickable links.
+function linkify(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(/https?:\/\/[^\s<]+/g, (url) =>
+        `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+}
+
 function openView(task) {
     const start = parseISO(task.start);
     const end = parseISO(task.end);
@@ -296,7 +303,7 @@ function openView(task) {
     if (task.category) bits.push(task.category);
     document.getElementById("v-meta").textContent = bits.join(" · ");
     const desc = document.getElementById("v-description");
-    desc.textContent = task.description || "";
+    desc.innerHTML = linkify(task.description || "");
     desc.classList.toggle("hidden", !task.description);
     const editBtn = document.getElementById("v-edit-btn");
     editBtn.classList.toggle("hidden", !isOwnBoard());
@@ -334,6 +341,12 @@ async function copyTask(task) {
     await loadTasks();
 }
 
+async function deleteTask(task) {
+    if (!confirm("Delete this task?")) return;
+    await apiFetch(`/api/tasks/${task.id}`, { method: "DELETE" });
+    await loadTasks();
+}
+
 // ---- Drag & drop (move) ----
 function snapMinutes(min) { return Math.round(min / 30) * 30; }
 
@@ -352,6 +365,9 @@ function attachDrag(block, task, start, end) {
             }
             dragging = true;
             block.classList.add("dragging");
+            // let the block follow the cursor
+            block.style.transform =
+                `translate(${ev.clientX - startX}px, ${ev.clientY - startY}px)`;
         };
 
         const onUp = async (ev) => {
@@ -359,6 +375,7 @@ function attachDrag(block, task, start, end) {
             document.removeEventListener("mouseup", onUp);
             if (!dragging) return;
             block.classList.remove("dragging");
+            block.style.transform = "";
             block._suppressClick = true; // swallow the click that follows a drag
             const dropped = dropTarget(ev.clientX, ev.clientY);
             if (dropped) {
@@ -499,6 +516,7 @@ ctxMenu.addEventListener("click", (e) => {
     hideContextMenu();
     if (act === "edit") openEdit(task);
     else if (act === "copy") copyTask(task);
+    else if (act === "delete") deleteTask(task);
 });
 document.addEventListener("click", (e) => {
     if (!ctxMenu.classList.contains("hidden") && !ctxMenu.contains(e.target)) {
