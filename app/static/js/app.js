@@ -34,6 +34,7 @@ const userSwitchEl = document.getElementById("user-switch");
 const newBtn = document.getElementById("new-btn");
 const viewDialog = document.getElementById("view-dialog");
 const ctxMenu = document.getElementById("ctx-menu");
+const appBodyEl = document.getElementById("app-body");
 
 // True when viewing your own dashboard (editing allowed).
 function isOwnBoard() {
@@ -527,6 +528,15 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") hideContextMenu();
 });
 window.addEventListener("scroll", hideContextMenu, true);
+
+// Sidebar collapse (persisted across reloads)
+if (localStorage.getItem("sidebarCollapsed") === "1") {
+    appBodyEl.classList.add("sidebar-collapsed");
+}
+document.getElementById("sidebar-toggle").addEventListener("click", () => {
+    const collapsed = appBodyEl.classList.toggle("sidebar-collapsed");
+    localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0");
+});
 
 document.getElementById("delete-btn").addEventListener("click", async () => {
     if (editingId === null) return;
