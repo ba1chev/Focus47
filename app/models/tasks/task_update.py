@@ -14,3 +14,4 @@ class TaskUpdate(BaseModel):
     priority: Optional[Priority] = None
     category: Optional[str] = None
     user_id: Optional[int] = None
+    repeat_weeks: int = 0
