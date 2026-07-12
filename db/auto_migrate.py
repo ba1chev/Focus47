@@ -1,14 +1,7 @@
 from sqlalchemy import text, inspect
 from sqlalchemy.engine import Engine
 
-from db.models.user_record import UserRecord
-from db.models.task_record import TaskRecord
-
-
-LAZY_COLUMNS: dict[str, dict[str, str]] = {
-    UserRecord.__tablename__: {},
-    TaskRecord.__tablename__: {}
-}
+from db.constants import LAZY_COLUMNS
 
 
 def run_auto_migrations(engine: Engine) -> None:
