@@ -27,7 +27,8 @@ class TaskRepository:
         return session.get(TaskRecord, task_id)
 
     def create(self, session: Session, task: TaskCreate) -> TaskRecord:
-        record = TaskRecord(**task.model_dump(mode="json"))
+        fields = task.model_dump(mode="json", exclude={"repeat_weeks"})
+        record = TaskRecord(**fields)
         session.add(record)
         session.commit()
         session.refresh(record)
@@ -38,7 +39,9 @@ class TaskRepository:
         record = session.get(TaskRecord, task_id)
         if record is None:
             return None
-        fields = task.model_dump(mode="json", exclude_unset=True)
+        fields = task.model_dump(
+            mode="json", exclude_unset=True, exclude={"repeat_weeks"}
+        )
         for key, value in fields.items():
             setattr(record, key, value)
         session.commit()
