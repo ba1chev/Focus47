@@ -250,6 +250,7 @@ function setFormValues(v) {
     document.getElementById("f-status").value = v.status || "todo";
     document.getElementById("f-priority").value = v.priority || "medium";
     document.getElementById("f-category").value = v.category || "";
+    document.getElementById("f-repeat").value = 0;
 }
 
 function openCreate(dayDate, hour) {
@@ -281,6 +282,7 @@ function collectForm() {
         status: document.getElementById("f-status").value,
         priority: document.getElementById("f-priority").value,
         category: document.getElementById("f-category").value,
+        repeat_weeks: Number(document.getElementById("f-repeat").value) || 0,
     };
 }
 
