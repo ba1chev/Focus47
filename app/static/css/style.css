@@ -235,6 +235,7 @@ select#user-switch {
     cursor: grabbing;
     z-index: 50;
     pointer-events: none;
+    will-change: transform;
 }
 
 /* ---- Context menu ---- */
@@ -262,6 +263,8 @@ select#user-switch {
     cursor: pointer;
 }
 .ctx-menu button:hover { background: var(--accent); }
+.ctx-menu button.danger { color: #ff8a95; }
+.ctx-menu button.danger:hover { background: #7a2e3e; color: #fff; }
 
 /* ---- Read-only view dialog ---- */
 #view-dialog .view-body { display: flex; flex-direction: column; gap: 8px; }
@@ -273,7 +276,13 @@ select#user-switch {
     white-space: pre-wrap;
     color: var(--text);
     line-height: 1.4;
+    word-break: break-word;
 }
+#view-dialog .view-description a {
+    color: var(--accent);
+    text-decoration: underline;
+}
+#view-dialog .view-description a:hover { filter: brightness(1.2); }
 
 
 /* status contrast */
