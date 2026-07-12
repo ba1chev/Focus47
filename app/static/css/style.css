@@ -368,6 +368,14 @@ dialog input:focus, dialog textarea:focus, dialog select:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(122, 79, 134, 0.5);
 }
+.auth-field input:-webkit-autofill,
+.auth-field input:-webkit-autofill:hover,
+.auth-field input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #fff;
+    -webkit-box-shadow: 0 0 0 1000px #eb9db0 inset;
+    caret-color: #fff;
+    transition: background-color 9999s ease-in-out 0s;
+}
 .auth-submit {
     margin-top: 6px;
     border: none;
