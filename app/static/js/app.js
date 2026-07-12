@@ -588,6 +588,7 @@ async function initUser() {
     if (!res.ok) return;
     me = await res.json();
     viewUserId = me.id;
+    renderProfile();
     if (me.role === "admin") {
         const users = await (await fetch("/api/users")).json();
         userSwitchEl.innerHTML = "";
@@ -600,6 +601,15 @@ async function initUser() {
         userSwitchEl.value = String(me.id);
         userSwitchEl.classList.remove("hidden");
     }
+}
+
+function renderProfile() {
+    const avatar = document.getElementById("profile-avatar");
+    avatar.textContent = (me.name || me.account || "?").trim().charAt(0).toUpperCase();
+    avatar.style.background = me.color || "var(--accent)";
+    document.getElementById("profile-name").textContent = me.name || me.account;
+    document.getElementById("profile-role").textContent =
+        me.role === "admin" ? "Administrator" : "Member";
 }
 
 renderMiniWeekdays();
