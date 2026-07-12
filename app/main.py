@@ -41,9 +41,13 @@ class Application:
             yield
 
         app = FastAPI(title=APP_TITLE, lifespan=lifespan)
-        app.include_router(AuthRouter(self._database, self._hasher, self._tokens).router)
-        app.include_router(TaskRouter(self._database).router)
-        app.include_router(UserRouter(self._database).router)
+        app.include_router(
+            AuthRouter(
+                self._database, self._hasher, self._tokens, self._current_user
+            ).router
+        )
+        app.include_router(TaskRouter(self._database, self._current_user).router)
+        app.include_router(UserRouter(self._database, self._current_user).router)
 
         @app.get("/")
         def index(request: Request):

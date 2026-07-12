@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from db.connection import Database
 from app.constants import COOKIE_NAME
 from app.models.users.user_out import UserOut
+from app.security.current_user import CurrentUser
 from app.security.token_service import TokenService
 from app.models.auth.login_request import LoginRequest
 from app.security.password_hasher import PasswordHasher
@@ -12,13 +13,14 @@ from app.models.auth.register_request import RegisterRequest
 
 
 class AuthRouter:
-    """Wires registration, login and logout endpoints."""
+    """Wires registration, login, logout and current-user endpoints."""
 
     def __init__(self, database: Database, password_hasher: PasswordHasher,
-        token_service: TokenService) -> None:
+        token_service: TokenService, current_user: CurrentUser) -> None:
         self._database = database
         self._hasher = password_hasher
         self._tokens = token_service
+        self._current_user = current_user
         self.router = APIRouter(prefix="/api/auth", tags=["auth"])
         self._register_routes()
 
@@ -63,3 +65,7 @@ class AuthRouter:
         @self.router.post("/logout", status_code=204)
         def logout(response: Response):
             response.delete_cookie(COOKIE_NAME)
+
+        @self.router.get("/me", response_model=UserOut)
+        def me(user: dict = Depends(self._current_user.required)):
+            return user

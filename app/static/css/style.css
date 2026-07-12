@@ -64,6 +64,13 @@ body {
 .btn.primary:hover { background: var(--accent-hover); }
 .btn.danger { background: #7a2e3e; border-color: #7a2e3e; }
 .btn.danger:hover { background: #9a3a4e; }
+select#user-switch {
+    appearance: none;
+    padding-right: 28px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%23a0a0c0'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
 .hidden { display: none !important; }
 
 /* ---- Layout body ---- */

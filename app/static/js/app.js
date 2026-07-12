@@ -16,6 +16,8 @@ let miniMonth = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMon
 let workWeek = true;         // Mon–Fri vs full week
 let tasks = [];
 let editingId = null;
+let me = null;               // current authenticated user
+let viewUserId = null;       // dashboard being viewed (admin can switch)
 
 // ---- DOM ----
 const headerEl = document.getElementById("calendar-header");
@@ -28,6 +30,13 @@ const form = document.getElementById("task-form");
 const miniLabelEl = document.getElementById("mini-month-label");
 const miniWeekdaysEl = document.getElementById("mini-weekdays");
 const miniGridEl = document.getElementById("mini-grid");
+const userSwitchEl = document.getElementById("user-switch");
+const newBtn = document.getElementById("new-btn");
+
+// True when viewing your own dashboard (editing allowed).
+function isOwnBoard() {
+    return !me || viewUserId === null || viewUserId === me.id;
+}
 
 // ---- Date helpers ----
 function mondayOf(date) {
@@ -135,6 +144,7 @@ function renderMiniCal() {
 
 function renderDays(weekStart) {
     const n = dayCount();
+    const editable = isOwnBoard();
     daysEl.innerHTML = "";
     const columns = [];
     for (let i = 0; i < n; i++) {
@@ -145,7 +155,7 @@ function renderDays(weekStart) {
         for (const h of HOURS) {
             const cell = document.createElement("div");
             cell.className = "hour-cell";
-            cell.addEventListener("click", () => openCreate(dayDate, h));
+            if (editable) cell.addEventListener("click", () => openCreate(dayDate, h));
             col.appendChild(cell);
         }
         daysEl.appendChild(col);
@@ -157,14 +167,14 @@ function renderDays(weekStart) {
         const end = parseISO(t.end);
         for (let i = 0; i < n; i++) {
             if (sameDay(start, columns[i].dayDate)) {
-                placeTask(columns[i].col, t, start, end);
+                placeTask(columns[i].col, t, start, end, editable);
                 break;
             }
         }
     }
 }
 
-function placeTask(col, task, start, end) {
+function placeTask(col, task, start, end, editable) {
     const startMin = (start.getHours() - DAY_START_HOUR) * 60 + start.getMinutes();
     let durMin = (end - start) / 60000;
     if (durMin < 30) durMin = 30; // minimum visible height
@@ -182,8 +192,9 @@ function placeTask(col, task, start, end) {
         `<div class="task-meta">${timeStr}${task.category ? " · " + escapeHtml(task.category) : ""}</div>`;
     block.addEventListener("click", (e) => {
         e.stopPropagation();
-        openEdit(task);
+        if (editable) openEdit(task);
     });
+    if (!editable) block.style.cursor = "default";
     col.appendChild(block);
 }
 
@@ -197,8 +208,13 @@ function escapeHtml(s) {
 async function loadTasks() {
     const start = toLocalISO(currentWeekStart);
     const end = toLocalISO(addDays(currentWeekStart, 7));
-    const res = await fetch(`/api/tasks?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    let url = `/api/tasks?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+    if (me && viewUserId !== null && viewUserId !== me.id) {
+        url += `&user_id=${viewUserId}`;
+    }
+    const res = await fetch(url);
     tasks = await res.json();
+    newBtn.classList.toggle("hidden", !isOwnBoard());
     renderDays(currentWeekStart);
 }
 
@@ -322,8 +338,32 @@ document.getElementById("mini-next").addEventListener("click", () => {
     renderMiniCal();
 });
 
+userSwitchEl.addEventListener("change", () => {
+    viewUserId = Number(userSwitchEl.value);
+    render();
+});
+
+async function initUser() {
+    const res = await fetch("/api/auth/me");
+    if (!res.ok) return;
+    me = await res.json();
+    viewUserId = me.id;
+    if (me.role === "admin") {
+        const users = await (await fetch("/api/users")).json();
+        userSwitchEl.innerHTML = "";
+        for (const u of users) {
+            const opt = document.createElement("option");
+            opt.value = u.id;
+            opt.textContent = u.id === me.id ? `${u.name} (you)` : u.name;
+            userSwitchEl.appendChild(opt);
+        }
+        userSwitchEl.value = String(me.id);
+        userSwitchEl.classList.remove("hidden");
+    }
+}
+
 renderMiniWeekdays();
-render();
+initUser().then(render);
 
 // Start scrolled to the morning (7 AM), like Teams.
 bodyEl.scrollTop = (7 - DAY_START_HOUR) * SLOT_HEIGHT;
