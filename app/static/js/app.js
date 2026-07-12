@@ -13,7 +13,6 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
 // ---- State ----
 let currentWeekStart = mondayOf(new Date());
 let miniMonth = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), 1);
-let workWeek = true;         // Mon–Fri vs full week
 let tasks = [];
 let editingId = null;
 let me = null;               // current authenticated user
@@ -90,7 +89,7 @@ function fmtHour(h) {
 }
 
 // ---- Rendering ----
-function dayCount() { return workWeek ? 5 : 7; }
+function dayCount() { return 7; }
 
 function renderHeader(weekStart) {
     const n = dayCount();
@@ -333,11 +332,6 @@ document.getElementById("prev-btn").addEventListener("click", () => {
 });
 document.getElementById("next-btn").addEventListener("click", () => {
     currentWeekStart = addDays(currentWeekStart, 7);
-    render();
-});
-document.getElementById("view-toggle").addEventListener("click", (e) => {
-    workWeek = !workWeek;
-    e.target.textContent = workWeek ? "Work week" : "Full week";
     render();
 });
 
