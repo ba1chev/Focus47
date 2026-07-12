@@ -229,6 +229,52 @@ select#user-switch {
     text-overflow: ellipsis;
 }
 .task-block.compact .task-meta { display: none; }
+.task-block.draggable { cursor: grab; }
+.task-block.dragging {
+    opacity: 0.6;
+    cursor: grabbing;
+    z-index: 50;
+    pointer-events: none;
+}
+
+/* ---- Context menu ---- */
+.ctx-menu {
+    position: fixed;
+    z-index: 200;
+    min-width: 120px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+}
+.ctx-menu.hidden { display: none; }
+.ctx-menu button {
+    background: none;
+    border: none;
+    color: var(--text);
+    text-align: left;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font: inherit;
+    cursor: pointer;
+}
+.ctx-menu button:hover { background: var(--accent); }
+
+/* ---- Read-only view dialog ---- */
+#view-dialog .view-body { display: flex; flex-direction: column; gap: 8px; }
+#view-dialog h2 { margin: 0; }
+#view-dialog .view-time { color: var(--text); font-weight: 600; }
+#view-dialog .view-meta { color: var(--text-dim); font-size: 13px; }
+#view-dialog .view-description {
+    margin: 0;
+    white-space: pre-wrap;
+    color: var(--text);
+    line-height: 1.4;
+}
+
 
 /* status contrast */
 .task-block.status-in_progress {
