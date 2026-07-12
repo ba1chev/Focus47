@@ -1,5 +1,6 @@
 from typing import Optional
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 
 from db.engine import Database
@@ -26,6 +27,19 @@ class TaskRouter:
         with self._database.session() as session:
             yield session
 
+    def _spawn_weekly_copies(self, session: Session, template: TaskCreate, weeks: int) -> None:
+        for k in range(1, weeks + 1):
+            copy = template.model_copy(update={
+                "start": self._shift_weeks(template.start, k),
+                "end": self._shift_weeks(template.end, k),
+                "repeat_weeks": 0
+            })
+            self._repo.create(session, copy)
+
+    @staticmethod
+    def _shift_weeks(iso: str, weeks: int) -> str:
+        return (datetime.fromisoformat(iso) + timedelta(weeks=weeks)).isoformat()
+
     def _register_routes(self) -> None:
         SessionDep = Depends(self._get_session)
         User = Depends(self._current_user.required)
@@ -49,7 +63,10 @@ class TaskRouter:
             task: TaskCreate, session: Session = SessionDep, user: UserRecord = User
         ):
             task.user_id = user.id
-            return self._repo.create(session, task)
+            record = self._repo.create(session, task)
+            if task.repeat_weeks > 0:
+                self._spawn_weekly_copies(session, task, task.repeat_weeks)
+            return record
 
         @self.router.get("/{task_id}", response_model=TaskOut)
         def get_task(
@@ -68,7 +85,11 @@ class TaskRouter:
             existing = self._repo.get(session, task_id)
             if existing is None or existing.user_id != user.id:
                 raise HTTPException(status_code=404, detail="Task not found")
-            return self._repo.update(session, task_id, task)
+            record = self._repo.update(session, task_id, task)
+            if task.repeat_weeks > 0:
+                template = TaskCreate.model_validate(record)
+                self._spawn_weekly_copies(session, template, task.repeat_weeks)
+            return record
 
         @self.router.delete("/{task_id}", status_code=204)
         def delete_task(
