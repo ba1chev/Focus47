@@ -4,21 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focus47 — Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body class="auth-body">
     <form class="auth-card" id="login-form">
-        <h1>Focus47</h1>
-        <h2>Sign in</h2>
-        <label>Account
-            <input type="text" id="account" name="account" required autofocus>
-        </label>
-        <label>Password
-            <input type="password" id="password" name="password" required>
-        </label>
-        <p class="auth-error hidden" id="error"></p>
-        <button type="submit" class="btn primary">Sign in</button>
-        <p class="auth-switch">No account? <a href="/register">Register</a></p>
+        <div class="auth-scene">
+            <svg class="auth-illustration" viewBox="0 0 400 320" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+                <defs>
+                    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#4a3a72"/>
+                        <stop offset="55%" stop-color="#8a5a8f"/>
+                        <stop offset="100%" stop-color="#e79aa6"/>
+                    </linearGradient>
+                    <radialGradient id="moon" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#ffd9c0"/>
+                        <stop offset="100%" stop-color="#f2a68f"/>
+                    </radialGradient>
+                </defs>
+                <rect width="400" height="320" fill="url(#sky)"/>
+                <circle cx="300" cy="70" r="26" fill="url(#moon)"/>
+                <g fill="#fff">
+                    <circle cx="40" cy="50" r="1.2"/><circle cx="120" cy="30" r="1"/>
+                    <circle cx="200" cy="60" r="1.4"/><circle cx="350" cy="120" r="1"/>
+                    <circle cx="90" cy="110" r="1"/><circle cx="250" cy="40" r="1.2"/>
+                    <circle cx="370" cy="40" r="1"/><circle cx="160" cy="100" r="1"/>
+                </g>
+                <g stroke="#fff" stroke-width="1" opacity="0.7">
+                    <line x1="60" y1="20" x2="72" y2="44"/>
+                    <line x1="330" y1="150" x2="345" y2="178"/>
+                    <line x1="230" y1="90" x2="240" y2="112"/>
+                </g>
+                <path d="M0 230 Q80 150 170 210 T400 190 V320 H0 Z" fill="#7a4f86"/>
+                <path d="M0 270 Q110 200 220 250 T400 240 V320 H0 Z" fill="#5f3d75"/>
+                <path d="M0 300 Q120 250 260 285 T400 290 V320 H0 Z" fill="#4a2f66"/>
+            </svg>
+        </div>
+        <div class="auth-panel">
+            <h1>Login</h1>
+            <div class="auth-field">
+                <span class="auth-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
+                </span>
+                <input type="text" id="account" name="account" placeholder="Username" required autofocus>
+            </div>
+            <div class="auth-field">
+                <span class="auth-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M17 9V7a5 5 0 0 0-10 0v2H5v13h14V9h-2Zm-8 0V7a3 3 0 0 1 6 0v2H9Z"/></svg>
+                </span>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+            </div>
+            <p class="auth-error hidden" id="error"></p>
+            <button type="submit" class="auth-submit">Login</button>
+            <a class="auth-switch" href="/register">Create Account</a>
+        </div>
     </form>
     <script src="/static/js/auth.js"></script>
 </body>
