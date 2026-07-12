@@ -131,6 +131,14 @@ def test_admin_sees_user_switch_dropdown(page, live_server):
     assert page.locator("#user-switch").is_visible()
 
 
+def test_profile_card_shows_current_user(page, live_server):
+    _login(page, live_server)
+    page.wait_for_selector("#profile-name:not(:empty)")
+    assert page.locator("#profile-name").inner_text() != ""
+    assert page.locator("#profile-role").inner_text() == "Administrator"
+    assert page.locator("#profile-avatar").inner_text() != ""
+
+
 def test_sidebar_toggles(page, live_server):
     _login(page, live_server)
     body = page.locator("#app-body")
