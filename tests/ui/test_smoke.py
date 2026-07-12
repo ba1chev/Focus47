@@ -70,6 +70,22 @@ def test_left_click_opens_read_only_view(page, live_server):
     assert not page.locator("#task-dialog").is_visible()
 
 
+def test_description_url_becomes_a_link(page, live_server):
+    _login(page, live_server)
+    page.click("#new-btn")
+    page.locator("#task-dialog").wait_for(state="visible")
+    page.fill("#f-title", "Linky")
+    page.fill("#f-description", "watch https://example.com/vid here")
+    page.click("#save-btn")
+    page.wait_for_selector(".task-block:has-text('Linky')")
+    page.click(".task-block:has-text('Linky')")
+    page.locator("#view-dialog").wait_for(state="visible")
+    link = page.locator("#v-description a")
+    expect(link).to_have_count(1)
+    assert link.get_attribute("href") == "https://example.com/vid"
+    assert link.get_attribute("target") == "_blank"
+
+
 def test_right_click_shows_context_menu(page, live_server):
     _login(page, live_server)
     _create_task(page, "Menu Me")
@@ -78,6 +94,7 @@ def test_right_click_shows_context_menu(page, live_server):
     menu.wait_for(state="visible")
     assert menu.locator("button[data-act=edit]").is_visible()
     assert menu.locator("button[data-act=copy]").is_visible()
+    assert menu.locator("button[data-act=delete]").is_visible()
 
 
 def test_copy_creates_a_second_task(page, live_server):
@@ -88,6 +105,16 @@ def test_copy_creates_a_second_task(page, live_server):
     page.locator("#ctx-menu").wait_for(state="visible")
     page.click("#ctx-menu button[data-act=copy]")
     expect(page.locator(".task-block:has-text('Clone Me')")).to_have_count(2)
+
+
+def test_delete_removes_the_task(page, live_server):
+    _login(page, live_server)
+    _create_task(page, "Trash Me")
+    page.on("dialog", lambda d: d.accept())
+    page.click(".task-block:has-text('Trash Me')", button="right")
+    page.locator("#ctx-menu").wait_for(state="visible")
+    page.click("#ctx-menu button[data-act=delete]")
+    expect(page.locator(".task-block:has-text('Trash Me')")).to_have_count(0)
 
 
 def test_logout_returns_to_login(page, live_server):
