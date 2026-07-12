@@ -2,3 +2,4 @@
 __pycache__
 focus47.db
 .env
+.DS_Store
