@@ -34,7 +34,7 @@ class AuthRouter:
         token = self._tokens.create(user.id, user.role)
         response.set_cookie(
             key=COOKIE_NAME, value=token,
-            httponly=True, samesite="lax"
+            httponly=True, samesite="strict"
         )
 
     def _register_routes(self) -> None:
