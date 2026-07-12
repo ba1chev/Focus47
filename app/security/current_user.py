@@ -1,8 +1,9 @@
 from typing import Optional
 from fastapi import Request, HTTPException
 
-from db.connection import Database
+from db.engine import Database
 from app.constants import COOKIE_NAME
+from db.models.user_record import UserRecord
 from app.security.token_service import TokenService
 from app.repositories.user_repository import UserRepository
 
@@ -14,23 +15,20 @@ class CurrentUser:
         self._database = database
         self._token_service = token_service
 
-    def _resolve(self, request: Request) -> Optional[dict]:
+    def _resolve(self, request: Request) -> Optional[UserRecord]:
         token = request.cookies.get(COOKIE_NAME)
         if not token:
             return None
         payload = self._token_service.decode(token)
         if not payload:
             return None
-        conn = self._database.connect()
-        try:
-            return UserRepository(conn).get(int(payload["sub"]))
-        finally:
-            conn.close()
+        with self._database.session() as session:
+            return UserRepository().get(session, int(payload["sub"]))
 
-    def optional(self, request: Request) -> Optional[dict]:
+    def optional(self, request: Request) -> Optional[UserRecord]:
         return self._resolve(request)
 
-    def required(self, request: Request) -> dict:
+    def required(self, request: Request) -> UserRecord:
         user = self._resolve(request)
         if user is None:
             raise HTTPException(status_code=401, detail="Not authenticated")

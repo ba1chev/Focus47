@@ -1,67 +1,54 @@
-import sqlite3
 from typing import Optional
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from app.constants import COLUMNS
+from db.models.task_record import TaskRecord
 from app.models.tasks.task_create import TaskCreate
 from app.models.tasks.task_update import TaskUpdate
 
 
 class TaskRepository:
-    """Data-access for tasks against a SQLite connection."""
+    """Data-access for tasks. Callers pass a Session per call (stateless)."""
 
-    def __init__(self, conn: sqlite3.Connection) -> None:
-        self._conn = conn
-
-    def list(self, start: Optional[str] = None,
-        end: Optional[str] = None, user_id: Optional[int] = None) -> list[dict]:
-        query = f"SELECT {COLUMNS} FROM tasks WHERE 1=1"
-        params: list = []
+    def list(self, session: Session, start: Optional[str] = None,
+        end: Optional[str] = None,
+        user_id: Optional[int] = None) -> list[TaskRecord]:
+        query = select(TaskRecord)
         if end is not None:
-            query += " AND start < ?"
-            params.append(end)
+            query = query.where(TaskRecord.start < end)
         if start is not None:
-            query += " AND end > ?"
-            params.append(start)
+            query = query.where(TaskRecord.end > start)
         if user_id is not None:
-            query += " AND user_id = ?"
-            params.append(user_id)
-        query += " ORDER BY start"
-        rows = self._conn.execute(query, params).fetchall()
-        return [dict(row) for row in rows]
+            query = query.where(TaskRecord.user_id == user_id)
+        query = query.order_by(TaskRecord.start)
+        return list(session.execute(query).scalars())
 
-    def get(self, task_id: int) -> Optional[dict]:
-        row = self._conn.execute(
-            f"SELECT {COLUMNS} FROM tasks WHERE id = ?", (task_id,)
-        ).fetchone()
-        return dict(row) if row else None
+    def get(self, session: Session, task_id: int) -> Optional[TaskRecord]:
+        return session.get(TaskRecord, task_id)
 
-    def create(self, task: TaskCreate) -> dict:
-        data = task.model_dump(mode="json")
-        cursor = self._conn.execute(
-            """
-            INSERT INTO tasks
-                (title, description, start, end, status, priority, category, user_id)
-            VALUES (:title, :description, :start, :end, :status, :priority, :category, :user_id)
-            """,
-            data
-        )
-        self._conn.commit()
-        return self.get(cursor.lastrowid)
+    def create(self, session: Session, task: TaskCreate) -> TaskRecord:
+        record = TaskRecord(**task.model_dump(mode="json"))
+        session.add(record)
+        session.commit()
+        session.refresh(record)
+        return record
 
-    def update(self, task_id: int, task: TaskUpdate) -> Optional[dict]:
+    def update(self, session: Session, task_id: int,
+        task: TaskUpdate) -> Optional[TaskRecord]:
+        record = session.get(TaskRecord, task_id)
+        if record is None:
+            return None
         fields = task.model_dump(mode="json", exclude_unset=True)
-        if not fields:
-            return self.get(task_id)
-        assignments = ", ".join(f"{key} = ?" for key in fields)
-        params = list(fields.values()) + [task_id]
-        self._conn.execute(
-            f"UPDATE tasks SET {assignments} WHERE id = ?", params
-        )
-        self._conn.commit()
-        return self.get(task_id)
+        for key, value in fields.items():
+            setattr(record, key, value)
+        session.commit()
+        session.refresh(record)
+        return record
 
-    def delete(self, task_id: int) -> bool:
-        cursor = self._conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-        self._conn.commit()
-        return cursor.rowcount > 0
-
+    def delete(self, session: Session, task_id: int) -> bool:
+        record = session.get(TaskRecord, task_id)
+        if record is None:
+            return False
+        session.delete(record)
+        session.commit()
+        return True

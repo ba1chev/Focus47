@@ -1,8 +1,9 @@
-import sqlite3
+from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException, Response
 
-from db.connection import Database
+from db.engine import Database
 from app.constants import COOKIE_NAME
+from db.models.user_record import UserRecord
 from app.models.users.user_out import UserOut
 from app.security.current_user import CurrentUser
 from app.security.token_service import TokenService
@@ -21,29 +22,31 @@ class AuthRouter:
         self._hasher = password_hasher
         self._tokens = token_service
         self._current_user = current_user
+        self._repo = UserRepository()
         self.router = APIRouter(prefix="/api/auth", tags=["auth"])
         self._register_routes()
 
     def _get_session(self):
-        yield from self._database.session()
+        with self._database.session() as session:
+            yield session
 
-    def _set_cookie(self, response: Response, user: dict) -> None:
-        token = self._tokens.create(user["id"], user["role"])
+    def _set_cookie(self, response: Response, user: UserRecord) -> None:
+        token = self._tokens.create(user.id, user.role)
         response.set_cookie(
             key=COOKIE_NAME, value=token,
             httponly=True, samesite="lax"
         )
 
     def _register_routes(self) -> None:
-        Session = Depends(self._get_session)
+        SessionDep = Depends(self._get_session)
 
         @self.router.post("/register", response_model=UserOut, status_code=201)
         def register(payload: RegisterRequest, response: Response,
-            conn: sqlite3.Connection = Session):
-            repo = UserRepository(conn)
-            if repo.get_by_account(payload.account):
+            session: Session = SessionDep):
+            if self._repo.get_by_account(session, payload.account):
                 raise HTTPException(status_code=409, detail="Account already exists")
-            user = repo.create(
+            user = self._repo.create(
+                session,
                 name=payload.name,
                 account=payload.account,
                 password_hash=self._hasher.hash(payload.password)
@@ -53,10 +56,10 @@ class AuthRouter:
 
         @self.router.post("/login", response_model=UserOut)
         def login(payload: LoginRequest, response: Response,
-            conn: sqlite3.Connection = Session):
-            user = UserRepository(conn).get_by_account(payload.account)
+            session: Session = SessionDep):
+            user = self._repo.get_by_account(session, payload.account)
             if not user or not self._hasher.verify(
-                payload.password, user["password_hash"]
+                payload.password, user.password_hash
             ):
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             self._set_cookie(response, user)
@@ -67,5 +70,5 @@ class AuthRouter:
             response.delete_cookie(COOKIE_NAME)
 
         @self.router.get("/me", response_model=UserOut)
-        def me(user: dict = Depends(self._current_user.required)):
+        def me(user: UserRecord = Depends(self._current_user.required)):
             return user

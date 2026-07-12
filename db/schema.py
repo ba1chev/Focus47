@@ -1,9 +1,14 @@
-from db.config import SCHEMA_PATH
-from db.connection import Database
+from sqlalchemy import select
+
+from db.base import Base
+from db.engine import Database
+from db.models.user_record import UserRecord
+from db.models.task_record import TaskRecord  # noqa: F401
+from db.auto_migrate import run_auto_migrations
 
 
 class SchemaInitializer:
-    """Creates tables and seeds the admin account on first run."""
+    """Creates tables, applies additive migrations and seeds the admin account."""
 
     def __init__(self, database: Database, admin_name: str = "Admin",
         admin_account: str = "admin", admin_password_hash: str = "",
@@ -15,23 +20,21 @@ class SchemaInitializer:
         self._admin_color = admin_color
 
     def initialize(self) -> None:
-        schema = SCHEMA_PATH.read_text()
-        conn = self._database.connect()
-        try:
-            conn.executescript(schema)
-            self._seed_admin(conn)
-            conn.commit()
-        finally:
-            conn.close()
+        Base.metadata.create_all(self._database.engine)
+        run_auto_migrations(self._database.engine)
+        with self._database.session() as session:
+            self._seed_admin(session)
+            session.commit()
 
-    def _seed_admin(self, conn) -> None:
-        count = conn.execute(
-            "SELECT COUNT(*) AS c FROM users WHERE role = 'admin'"
-        ).fetchone()["c"]
-        if count == 0:
-            conn.execute(
-                "INSERT INTO users (name, account, password_hash, role, color) "
-                "VALUES (?, ?, ?, 'admin', ?)",
-                (self._admin_name, self._admin_account,
-                 self._admin_password_hash, self._admin_color)
-            )
+    def _seed_admin(self, session) -> None:
+        existing = session.execute(
+            select(UserRecord).where(UserRecord.role == "admin")
+        ).first()
+        if existing is None:
+            session.add(UserRecord(
+                name=self._admin_name,
+                account=self._admin_account,
+                password_hash=self._admin_password_hash,
+                role="admin",
+                color=self._admin_color
+            ))

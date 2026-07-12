@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
 
-from db.connection import Database
+from db.engine import Database
 from db.schema import SchemaInitializer
 from app.routers.task_router import TaskRouter
 from app.routers.user_router import UserRouter

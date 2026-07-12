@@ -1,41 +1,37 @@
-import sqlite3
+from typing import Optional
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.models.enums.role import Role
+from db.models.user_record import UserRecord
 
 
 class UserRepository:
-    """Data-access for users against a SQLite connection."""
+    """Data-access for users. Callers pass a Session per call (stateless)."""
 
-    def __init__(self, conn: sqlite3.Connection) -> None:
-        self._conn = conn
-
-    def list(self) -> list[dict]:
-        rows = self._conn.execute(
-            "SELECT id, name, account, role, color FROM users ORDER BY id"
-        ).fetchall()
-        return [dict(row) for row in rows]
-
-    def get(self, user_id: int) -> dict | None:
-        row = self._conn.execute(
-            "SELECT id, name, account, role, color FROM users WHERE id = ?",
-            (user_id,)
-        ).fetchone()
-        return dict(row) if row else None
-
-    def get_by_account(self, account: str) -> dict | None:
-        row = self._conn.execute(
-            "SELECT id, name, account, role, color, password_hash "
-            "FROM users WHERE account = ?",
-            (account,)
-        ).fetchone()
-        return dict(row) if row else None
-
-    def create(self, name: str, account: str, password_hash: str,
-        role: Role = Role.REGULAR, color: str = "#6264a7") -> dict:
-        cursor = self._conn.execute(
-            "INSERT INTO users (name, account, password_hash, role, color) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (name, account, password_hash, role.value, color)
+    def list(self, session: Session) -> list[UserRecord]:
+        return list(
+            session.execute(
+                select(UserRecord).order_by(UserRecord.id)
+            ).scalars()
         )
-        self._conn.commit()
-        return self.get(cursor.lastrowid)
+
+    def get(self, session: Session, user_id: int) -> Optional[UserRecord]:
+        return session.get(UserRecord, user_id)
+
+    def get_by_account(self, session: Session, account: str) -> Optional[UserRecord]:
+        return session.execute(
+            select(UserRecord).where(UserRecord.account == account)
+        ).scalar_one_or_none()
+
+    def create(self, session: Session, name: str, account: str,
+        password_hash: str, role: Role = Role.REGULAR,
+        color: str = "#6264a7") -> UserRecord:
+        user = UserRecord(
+            name=name, account=account, password_hash=password_hash,
+            role=role.value, color=color
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return user
