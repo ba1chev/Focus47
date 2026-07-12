@@ -203,8 +203,6 @@ select#user-switch {
 /* ---- Task block ---- */
 .task-block {
     position: absolute;
-    left: 3px;
-    right: 3px;
     border-radius: 5px;
     padding: 4px 6px;
     font-size: 12px;
@@ -219,6 +217,18 @@ select#user-switch {
 .task-block:hover { filter: brightness(1.15); }
 .task-block .task-title { font-weight: 600; line-height: 1.2; }
 .task-block .task-meta { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+.task-block.compact {
+    padding: 1px 6px;
+    display: flex;
+    align-items: center;
+}
+.task-block.compact .task-title {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.task-block.compact .task-meta { display: none; }
 
 /* status contrast */
 .task-block.status-in_progress {
