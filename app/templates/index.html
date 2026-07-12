@@ -103,6 +103,25 @@
         </form>
     </dialog>
 
+    <dialog id="view-dialog">
+        <div class="view-body">
+            <h2 id="v-title"></h2>
+            <div id="v-time" class="view-time"></div>
+            <div id="v-meta" class="view-meta"></div>
+            <p id="v-description" class="view-description"></p>
+            <div class="dialog-actions">
+                <span class="spacer"></span>
+                <button type="button" id="v-edit-btn" class="btn primary hidden">Edit</button>
+                <button type="button" id="v-close-btn" class="btn">Close</button>
+            </div>
+        </div>
+    </dialog>
+
+    <div id="ctx-menu" class="ctx-menu hidden">
+        <button type="button" data-act="edit">Edit</button>
+        <button type="button" data-act="copy">Copy</button>
+    </div>
+
     <script src="/static/js/app.js"></script>
 </body>
 </html>
