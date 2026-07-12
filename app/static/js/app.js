@@ -175,30 +175,72 @@ function renderDays(weekStart) {
         daysEl.appendChild(col);
         columns.push({ col, dayDate });
     }
-    // place task blocks
-    for (const t of tasks) {
-        const start = parseISO(t.start);
-        const end = parseISO(t.end);
-        for (let i = 0; i < n; i++) {
-            if (sameDay(start, columns[i].dayDate)) {
-                placeTask(columns[i].col, t, start, end, editable);
-                break;
-            }
+    // place task blocks, grouped per day so overlaps sit side by side
+    for (let i = 0; i < n; i++) {
+        const dayTasks = tasks
+            .filter((t) => sameDay(parseISO(t.start), columns[i].dayDate))
+            .sort((a, b) => parseISO(a.start) - parseISO(b.start));
+        for (const layout of layoutDay(dayTasks)) {
+            placeTask(columns[i].col, layout.task, layout.start, layout.end,
+                editable, layout.left, layout.width);
         }
     }
 }
 
-function placeTask(col, task, start, end, editable) {
+// Assign overlapping tasks to lanes so they render side by side.
+// Returns [{ task, start, end, left, width }] with left/width as 0..1 fractions.
+function layoutDay(dayTasks) {
+    const items = dayTasks.map((t) => ({
+        task: t, start: parseISO(t.start), end: parseISO(t.end),
+    }));
+    const result = [];
+    let cluster = [];
+    let clusterEnd = null;
+
+    const flush = () => {
+        if (!cluster.length) return;
+        const lanes = []; // lanes[j] = end time of last task in lane j
+        for (const it of cluster) {
+            let lane = lanes.findIndex((endTime) => it.start >= endTime);
+            if (lane === -1) { lane = lanes.length; lanes.push(it.end); }
+            else lanes[lane] = it.end;
+            it.lane = lane;
+        }
+        const laneCount = lanes.length;
+        for (const it of cluster) {
+            result.push({
+                task: it.task, start: it.start, end: it.end,
+                left: it.lane / laneCount, width: 1 / laneCount,
+            });
+        }
+        cluster = [];
+        clusterEnd = null;
+    };
+
+    for (const it of items) {
+        if (clusterEnd !== null && it.start >= clusterEnd) flush();
+        cluster.push(it);
+        clusterEnd = clusterEnd === null ? it.end : new Date(Math.max(clusterEnd, it.end));
+    }
+    flush();
+    return result;
+}
+
+function placeTask(col, task, start, end, editable, left, width) {
     const startMin = (start.getHours() - DAY_START_HOUR) * 60 + start.getMinutes();
-    let durMin = (end - start) / 60000;
-    if (durMin < 30) durMin = 30; // minimum visible height
+    const durMin = Math.max((end - start) / 60000, 15); // keep a clickable minimum
     const top = (startMin / 60) * SLOT_HEIGHT;
     const height = (durMin / 60) * SLOT_HEIGHT;
 
     const block = document.createElement("div");
     block.className = `task-block prio-${task.priority} status-${task.status}`;
+    if (height < 34) block.classList.add("compact");
     block.style.top = `${Math.max(top, 0)}px`;
     block.style.height = `${height - 2}px`;
+    // lane geometry: gap on both sides, split remaining width across lanes
+    const gap = 3;
+    block.style.left = `calc(${left * 100}% + ${gap}px)`;
+    block.style.width = `calc(${width * 100}% - ${gap * 2}px)`;
 
     const timeStr = `${fmtHour(start.getHours()).replace(" ", "")}`;
     block.innerHTML =
