@@ -38,6 +38,21 @@ function isOwnBoard() {
     return !me || viewUserId === null || viewUserId === me.id;
 }
 
+// Reads the double-submit CSRF token the server set as a readable cookie.
+function csrfToken() {
+    const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : "";
+}
+
+// fetch wrapper that attaches the CSRF header on mutating requests.
+function apiFetch(url, options = {}) {
+    const method = (options.method || "GET").toUpperCase();
+    if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+        options.headers = { ...(options.headers || {}), "X-CSRF-Token": csrfToken() };
+    }
+    return fetch(url, options);
+}
+
 // ---- Date helpers ----
 function mondayOf(date) {
     const d = new Date(date);
@@ -275,13 +290,13 @@ form.addEventListener("submit", async (e) => {
     const payload = collectForm();
     if (!payload.title) return;
     if (editingId === null) {
-        await fetch("/api/tasks", {
+        await apiFetch("/api/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
         });
     } else {
-        await fetch(`/api/tasks/${editingId}`, {
+        await apiFetch(`/api/tasks/${editingId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -296,7 +311,7 @@ document.getElementById("cancel-btn").addEventListener("click", () => dialog.clo
 document.getElementById("delete-btn").addEventListener("click", async () => {
     if (editingId === null) return;
     if (!confirm("Delete this task?")) return;
-    await fetch(`/api/tasks/${editingId}`, { method: "DELETE" });
+    await apiFetch(`/api/tasks/${editingId}`, { method: "DELETE" });
     dialog.close();
     await loadTasks();
 });
@@ -325,7 +340,7 @@ document.getElementById("view-toggle").addEventListener("click", (e) => {
 });
 
 document.getElementById("logout-btn").addEventListener("click", async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await apiFetch("/api/auth/logout", { method: "POST" });
     window.location = "/login";
 });
 
