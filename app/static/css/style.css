@@ -88,6 +88,14 @@ select#user-switch {
     border-right: 1px solid var(--border);
     padding: 16px;
     overflow-y: auto;
+    transition: width 0.2s ease, padding 0.2s ease;
+}
+.app-body.sidebar-collapsed .sidebar {
+    width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    overflow: hidden;
+    border-right: none;
 }
 .sidebar-title {
     margin: 0 0 16px;
