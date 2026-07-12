@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus47 — Login</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="auth-body">
+    <form class="auth-card" id="login-form">
+        <h1>Focus47</h1>
+        <h2>Sign in</h2>
+        <label>Account
+            <input type="text" id="account" name="account" required autofocus>
+        </label>
+        <label>Password
+            <input type="password" id="password" name="password" required>
+        </label>
+        <p class="auth-error hidden" id="error"></p>
+        <button type="submit" class="btn primary">Sign in</button>
+        <p class="auth-switch">No account? <a href="/register">Register</a></p>
+    </form>
+    <script src="/static/js/auth.js"></script>
+</body>
+</html>

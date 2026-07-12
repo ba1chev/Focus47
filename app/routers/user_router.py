@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends
 
 from db.connection import Database
 from app.models.users.user_out import UserOut
-from app.models.users.user_create import UserCreate
 from app.repositories.user_repository import UserRepository
 
 
@@ -24,7 +23,3 @@ class UserRouter:
         @self.router.get("", response_model=list[UserOut])
         def list_users(conn: sqlite3.Connection = Session):
             return UserRepository(conn).list()
-
-        @self.router.post("", response_model=UserOut, status_code=201)
-        def create_user(user: UserCreate, conn: sqlite3.Connection = Session):
-            return UserRepository(conn).create(user)

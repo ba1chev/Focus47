@@ -1,3 +1,4 @@
 .venv
 __pycache__
 focus47.db
+.env

@@ -1,7 +1,10 @@
 CREATE TABLE IF NOT EXISTS users (
-    id    INTEGER PRIMARY KEY AUTOINCREMENT,
-    name  TEXT NOT NULL,
-    color TEXT NOT NULL DEFAULT '#6264a7'
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT NOT NULL,
+    account       TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role          TEXT NOT NULL DEFAULT 'regular',
+    color         TEXT NOT NULL DEFAULT '#6264a7'
 );
 
 CREATE TABLE IF NOT EXISTS tasks (

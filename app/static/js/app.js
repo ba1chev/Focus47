@@ -308,6 +308,11 @@ document.getElementById("view-toggle").addEventListener("click", (e) => {
     render();
 });
 
+document.getElementById("logout-btn").addEventListener("click", async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location = "/login";
+});
+
 document.getElementById("mini-prev").addEventListener("click", () => {
     miniMonth.setMonth(miniMonth.getMonth() - 1);
     renderMiniCal();
